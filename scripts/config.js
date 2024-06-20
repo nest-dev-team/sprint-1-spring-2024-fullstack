@@ -1,6 +1,7 @@
 const fs = require("fs");
 const fsPromises = require("fs").promises;
 const path = require("path");
+const {configjson} = require("./templates");
 
 const args = process.argv.slice(2);
 
@@ -60,6 +61,22 @@ function setConfig() {
   })
 }
 
+function resetConfig() {
+  const configJSON = JSON.stringify(configjson, null, 2);
+  const fileName = path.join(__dirname, "..", "json", "config.json");
+  const folderPath = path.join(__dirname, "..", "json");
+
+  if (fs.existsSync(fileName)) {
+    fs.writeFile(fileName, configJSON, (error) => {
+      if (error) throw error;
+      console.log("Config reset to default state.")
+    })
+  } else {
+    console.log("Config file does not exist. Run 'app init --all' or 'app init --cat' to initialize file.")
+  }
+}
+
+
 
 function configApp() {
   switch (args[1]) {
@@ -68,6 +85,9 @@ function configApp() {
       break;
     case "--set":
       setConfig();
+      break;
+    case "--reset":
+      resetConfig();
       break;
     case "--help":
     case "--h":
