@@ -1,4 +1,5 @@
 const fs = require("fs");
+const fsPromises = require("fs").promises;
 const path = require("path");
 
 const args = process.argv.slice(2);
@@ -33,10 +34,40 @@ function displayConfigHelp() {
   }
 }
 
+function setConfig() {
+  const filePath = path.join(__dirname, "..", "json", "config.json")
+  fs.readFile(filePath, (error, data) => {
+    if (error) throw error;
+
+    let config = JSON.parse(data);
+    let match = false
+
+    for (const key in config) {
+      if (key === args[2]) {
+        config[key] = args[3];
+        match = true;
+      }
+    }
+
+    if (match) {
+      fs.writeFile(filePath, JSON.stringify(config, null, 2), (error) => {
+        if (error) throw error;
+        console.log("Config updated successfull.");
+      })
+    } else {
+      console.log(`Update failed, ${args[2]} is an invalid key.`);
+    }
+  })
+}
+
+
 function configApp() {
   switch (args[1]) {
     case "--show":
       displayConfig();
+      break;
+    case "--set":
+      setConfig();
       break;
     case "--help":
     case "--h":
