@@ -1,5 +1,7 @@
 const folders = ["models", "views", "routes", "logs", "json"];
 
+const helpFiles = ["help-init.txt", "help-config.txt", "help-token.txt"];
+
 const configjson = {
   name: "AppConfigCLI",
   version: "1.0.0",
@@ -25,6 +27,7 @@ const initHelp = `myapp init <option>
 
 Usage:
 
+myapp init --status                     displays status of all directories and files created during init 
 myapp init --all                        creates the folder structure and the config and help files
 myapp init --mk                         creates the folder structure
 myapp init --cat                        creates the config file with default settings and the help files`;
@@ -51,6 +54,7 @@ myapp token --search p <phone>          fetches a token for a given phone number
 
 module.exports = {
   folders,
+  helpFiles,
   configjson,
   tokenjson,
   initHelp,
