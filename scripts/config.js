@@ -64,7 +64,6 @@ function setConfig() {
 function resetConfig() {
   const configJSON = JSON.stringify(configjson, null, 2);
   const fileName = path.join(__dirname, "..", "json", "config.json");
-  const folderPath = path.join(__dirname, "..", "json");
 
   if (fs.existsSync(fileName)) {
     fs.writeFile(fileName, configJSON, (error) => {
