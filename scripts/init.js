@@ -5,6 +5,7 @@ const path = require("path");
 const args = process.argv.slice(2);
 const {
   folders,
+  helpFiles,
   configjson,
   tokenjson,
   initHelp,
@@ -106,6 +107,39 @@ function displayInitHelp() {
   }
 }
 
+function getStatus() {
+  console.log("Directories:");
+
+  folders.forEach((folder) => {
+    let folderPath = path.join(__dirname, "..", folder);
+
+    if (fs.existsSync(folderPath)) {
+      console.log(`✔  '${folder}' directory has already been created.`);
+    } else {
+      console.log(`❌ '${folder}' directory has not been created.`);
+    }
+  });
+
+  console.log("Files");
+  const fileName = path.join(__dirname, "..", "json", "config.json");
+
+  if (fs.existsSync(fileName)) {
+    console.log(`✔  'config.json' file has already been created.`);
+  } else {
+    console.log(`❌ 'config.json' file has not been created.`);
+  }
+
+  helpFiles.forEach((file) => {
+    let filePath = path.join(__dirname, "..", "help", file);
+
+    if (fs.existsSync(filePath)) {
+      console.log(`✔  '${file}' file has already been created.`);
+    } else {
+      console.log(`❌ '${file}' file has not been created.`);
+    }
+  });
+}
+
 function initApp() {
   switch (args[1]) {
     case "--all":
@@ -121,6 +155,7 @@ function initApp() {
       createHelp();
       break;
     case "--status":
+      getStatus();
       break;
     case "--help":
     case "--h":
