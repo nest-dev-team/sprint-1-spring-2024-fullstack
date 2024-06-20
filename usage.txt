@@ -1,0 +1,10 @@
+myapp <command> <option>
+
+Usage:
+
+myapp --help          displays help
+
+myapp init            initialize the app
+myapp init --mk       create all the app folders
+myapp init --cat      create all the app files
+myapp init --all      create all the folders and files
