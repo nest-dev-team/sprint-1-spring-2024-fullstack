@@ -143,6 +143,8 @@ function updateToken() {
     updateEmail();
   } else if (args[2] === "p") {
     updatePhone();
+  } else {
+    console.log("Invalid argument. Please specify email or phone to update using 'e' or 'p'.");
   }
 }
 
@@ -159,6 +161,134 @@ function displayTokenHelp() {
   }
 }
 
+function searchToken() {
+  if (args.length < 3) {
+    console.log("Please specify username, email, or phone to update using 'u', 'e', or 'p'.");
+    return;
+  }
+
+  if (args[2] === "e") {
+    searchByEmail();
+  } else if (args[2] === "p") {
+    searchByPhone();
+  } else if (args[2] == "u") {
+    searchByUsername();
+  } else {
+    console.log("Invalid argument. Please specify username, email, or phone to update using 'u', 'e', or 'p'.");
+  }
+}
+
+function searchByEmail() {
+  if (args.length < 4) {
+    console.log("Please provide a email address.");
+    return;
+  }
+
+  const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
+  fs.readFile(tokensjson, (error, data) => {
+    try {
+      if (error) throw error;
+
+      let tokens = JSON.parse(data);
+      let index = tokens.findIndex((token) => token.email === args[3]);
+
+      if (index === -1) {
+        console.log(`No record with email address ${args[3]} found.`);
+        return;
+      }
+      console.log(tokens[index]);
+
+
+    } catch (error) {
+      console.log(
+        "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+      );
+    }
+  });
+}
+
+function searchByPhone() {
+  if (args.length < 4) {
+    console.log("Please provide a phone number.");
+    return;
+  }
+
+  const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
+  fs.readFile(tokensjson, (error, data) => {
+    try {
+      if (error) throw error;
+
+      let tokens = JSON.parse(data);
+      let index = tokens.findIndex((token) => token.phone === args[3]);
+
+      if (index === -1) {
+        console.log(`No record with phone number ${args[3]} found.`);
+        return;
+      }
+      console.log(tokens[index]);
+
+
+    } catch (error) {
+      console.log(
+        "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+      );
+    }
+  });
+}
+
+function searchByUsername() {
+  if (args.length < 4) {
+    console.log("Please provide a username.");
+    return;
+  }
+
+  const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
+  fs.readFile(tokensjson, (error, data) => {
+    try {
+      if (error) throw error;
+
+      let tokens = JSON.parse(data);
+      let index = tokens.findIndex((token) => token.username === args[3]);
+
+      if (index === -1) {
+        console.log(`No record with username ${args[3]} found.`);
+        return;
+      }
+      console.log(tokens[index]);
+
+
+    } catch (error) {
+      console.log(
+        "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+      );
+    }
+  });
+}
+
+function countTokens() {
+  const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
+  fs.readFile(tokensjson, (error, data) => {
+    try {
+      if (error) throw error;
+
+      let tokens = JSON.parse(data);
+      let count = tokens.length;
+
+      if (count = 1) {
+      console.log(`There is ${count} tokens.`);
+
+      } else {
+      console.log(`There are ${count} tokens.`);
+      }
+
+    } catch (error) {
+      console.log(
+        "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+      );
+    }
+  });
+}
+
 function tokenApp() {
   switch (args[1]) {
     case "--new":
@@ -167,6 +297,12 @@ function tokenApp() {
     case "--update":
     case "--upd":
       updateToken();
+      break;
+    case "--search":
+      searchToken();
+      break;
+    case "--count":
+      countTokens();
       break;
     case "--help":
     case "--h":
