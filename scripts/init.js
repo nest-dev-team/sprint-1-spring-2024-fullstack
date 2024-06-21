@@ -63,6 +63,29 @@ function createConfig() {
   }
 }
 
+function createToken() {
+  const tokenJSON = JSON.stringify(tokenjson, null, 2);
+  const fileName = path.join(__dirname, "..", "json", "tokens.json");
+  const folderPath = path.join(__dirname, "..", "json");
+
+  try {
+    if (fs.existsSync(folderPath)) {
+      if (!fs.existsSync(fileName)) {
+        fs.writeFileSync(fileName, tokenJSON);
+        console.log("Tokens file created successfully.");
+      } else {
+        console.log("Tokens file already exists.");
+      }
+    } else {
+      console.log(
+        "Cannot create tokens file. Required directory does not exist. Run 'app init --mk' before running --cat again."
+      );
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 function createHelp() {
   const initHelpFile = path.join(__dirname, "..", "help", "help-init.txt");
   const configHelpFile = path.join(__dirname, "..", "help", "help-config.txt");
@@ -121,12 +144,20 @@ function getStatus() {
   });
 
   console.log("Files");
-  const fileName = path.join(__dirname, "..", "json", "config.json");
+  const config = path.join(__dirname, "..", "json", "config.json");
 
-  if (fs.existsSync(fileName)) {
+  if (fs.existsSync(config)) {
     console.log(`✔  'config.json' file has already been created.`);
   } else {
     console.log(`❌ 'config.json' file has not been created.`);
+  }
+
+  const token = path.join(__dirname, "..", "json", "tokens.json");
+
+  if (fs.existsSync(token)) {
+    console.log(`✔  'tokens.json' file has already been created.`);
+  } else {
+    console.log(`❌ 'tokens.json' file has not been created.`);
   }
 
   helpFiles.forEach((file) => {
@@ -145,6 +176,7 @@ function initApp() {
     case "--all":
       createFolders();
       createConfig();
+      createToken();
       createHelp();
       break;
     case "--mk":
@@ -152,6 +184,7 @@ function initApp() {
       break;
     case "--cat":
       createConfig();
+      createToken();
       createHelp();
       break;
     case "--status":
