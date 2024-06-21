@@ -7,5 +7,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "crc": "^4.3.2",
+    "date-fns": "^3.6.0",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "querystring": "^0.2.1",
+    "uuid": "^10.0.0"
+  }
 }

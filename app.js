@@ -3,6 +3,7 @@ global.DEBUG = true;
 const fs = require("fs");
 const { initApp } = require("./scripts/init");
 const { configApp } = require("./scripts/config");
+const { tokenApp } = require("./scripts/token");
 
 const help = fs.readFileSync("./help/help-app.txt").toString();
 
@@ -14,6 +15,9 @@ switch (args[0]) {
     break;
   case "config":
     configApp();
+    break;
+  case "token":
+    tokenApp();
     break;
   case "--help":
   case "--h":
