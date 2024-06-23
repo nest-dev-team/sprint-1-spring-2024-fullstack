@@ -1,0 +1,8 @@
+myapp init <option>
+
+Usage:
+
+myapp init --status                     displays status of all directories and files created during init 
+myapp init --all                        creates the folder structure and the config and help files
+myapp init --mk                         creates the folder structure
+myapp init --cat                        creates the config file with default settings and the help files

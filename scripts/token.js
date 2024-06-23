@@ -6,12 +6,7 @@ const { emitter } = require("./eventlog");
 
 const args = process.argv.slice(2);
 
-function newToken() {
-  if (args.length < 3) {
-    console.log("Please provide a username.");
-    return;
-  }
-
+function newToken(username) {
   let token = {
     created: "",
     username: "",
@@ -27,8 +22,8 @@ function newToken() {
 
   token.created = format(created, "yyyy-MM-dd HH:mm:ss");
   token.expires = format(expires, "yyyy-MM-dd HH:mm:ss");
-  token.username = args[2];
-  token.token = crc32(args[2]).toString(8);
+  token.username = username;
+  token.token = crc32(username).toString(8);
 
   const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
@@ -68,6 +63,8 @@ function newToken() {
       );
     }
   });
+
+  return token.token;
 }
 
 function addDays(date, days) {
@@ -76,53 +73,65 @@ function addDays(date, days) {
   return result;
 }
 
-function updateEmail() {
-  if (args.length < 5) {
-    console.log("Please provide an email address.");
-    return;
-  }
+function updateEmail(username, email) {
+  return new Promise((resolve, reject) => {
+    if (!username) {
+      console.log("Please provide a username.");
+      resolve("Username required");
+    }
 
-  const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
-  fs.readFile(tokensjson, (error, data) => {
-    try {
-      if (error) throw error;
+    if (!email) {
+      console.log("Please provide an email address.");
+      resolve("Email required");
+    }
 
-      let tokens = JSON.parse(data);
-      let index = tokens.findIndex((token) => token.username === args[3]);
+    const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
-      if (index === -1) {
-        console.log(`${args[3]} not found.`);
-        return;
-      }
-
-      tokens[index].email = args[4];
-
-      fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
+    fs.readFile(tokensjson, (error, data) => {
+      try {
         if (error) throw error;
 
+        let tokens = JSON.parse(data);
+        let index = tokens.findIndex((token) => token.username === username);
+
+        if (index === -1) {
+          console.log(`${username} not found.`);
+          resolve(`User ${username} not found.`);
+        }
+
+        tokens[index].email = email;
+
+        fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
+          if (error) throw error;
+
+          emitter.emit(
+            "token",
+            "token",
+            "UPDATE EMAIL",
+            "SUCCESS",
+            `Token email updated successfully.`
+          );
+
+          console.log(`Email for ${username} updated successfully.`);
+          resolve(`Email for ${username} updated successfully.`);
+        });
+      } catch (error) {
         emitter.emit(
           "token",
           "token",
           "UPDATE EMAIL",
-          "SUCCESS",
-          `Token email updated successfully.`
+          "FAILURE",
+          `Token email update failed.`
         );
 
-        console.log(`Email for ${args[3]} updated successfully.`);
-      });
-    } catch (error) {
-      emitter.emit(
-        "token",
-        "token",
-        "UPDATE EMAIL",
-        "FAILURE",
-        `Token email update failed.`
-      );
-
-      console.log(
-        "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
-      );
-    }
+        console.log(
+          "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+        );
+        resolve(
+          "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+        );
+      }
+    });
   });
 }
 
@@ -188,9 +197,9 @@ function updateToken() {
   }
 
   if (args[2] === "e") {
-    updateEmail();
+    updateEmail(args[3], args[4]);
   } else if (args[2] === "p") {
-    updatePhone();
+    updatePhone(args[3], args[4]);
   } else {
     console.log(
       "Invalid argument. Please specify email or phone to update using 'e' or 'p'."
@@ -338,7 +347,12 @@ function countTokens() {
 function tokenApp() {
   switch (args[1]) {
     case "--new":
-      newToken();
+      if (args.length < 3) {
+        console.log("Please provide a username.");
+        return;
+      } else {
+        newToken(args[2]);
+      }
       break;
     case "--update":
     case "--upd":
@@ -360,4 +374,8 @@ function tokenApp() {
 
 module.exports = {
   tokenApp,
+  newToken,
+  updateEmail,
+  updatePhone,
+  countTokens,
 };
