@@ -1,6 +1,7 @@
 // import required libriaries
 const fs = require("fs");
 const path = require("path");
+const { emitter } = require("./eventlog");
 
 const args = process.argv.slice(2);
 const {
@@ -24,6 +25,15 @@ function createFolders() {
       // create folder if doesn't exist
       if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath);
+
+        emitter.emit(
+          "init",
+          "init",
+          "DIR",
+          "SUCCESS",
+          `'/${folder}' created successfully.`
+        );
+
         mkCount++;
       }
     });
@@ -49,11 +59,28 @@ function createConfig() {
     if (fs.existsSync(folderPath)) {
       if (!fs.existsSync(fileName)) {
         fs.writeFileSync(fileName, configJSON);
+
+        emitter.emit(
+          "init",
+          "init",
+          "FILE",
+          "SUCCESS",
+          `'config.json' created successfully.`
+        );
+
         console.log("Config file created successfully.");
       } else {
         console.log("Config file already exists.");
       }
     } else {
+      emitter.emit(
+        "init",
+        "init",
+        "FILE",
+        "FAILURE",
+        `'config.json' could not be created.`
+      );
+
       console.log(
         "Cannot create configuration file. Required directory does not exist. Run 'app init --mk' before running --cat again."
       );
@@ -72,11 +99,28 @@ function createToken() {
     if (fs.existsSync(folderPath)) {
       if (!fs.existsSync(fileName)) {
         fs.writeFileSync(fileName, tokenJSON);
+
+        emitter.emit(
+          "init",
+          "init",
+          "FILE",
+          "SUCCESS",
+          `'tokens.json' created successfully.`
+        );
+
         console.log("Tokens file created successfully.");
       } else {
         console.log("Tokens file already exists.");
       }
     } else {
+      emitter.emit(
+        "init",
+        "init",
+        "FILE",
+        "FAILURE",
+        `'tokens.json' could not be created.`
+      );
+
       console.log(
         "Cannot create tokens file. Required directory does not exist. Run 'app init --mk' before running --cat again."
       );
@@ -94,6 +138,15 @@ function createHelp() {
   try {
     if (!fs.existsSync(initHelpFile)) {
       fs.writeFileSync(initHelpFile, initHelp);
+
+      emitter.emit(
+        "init",
+        "init",
+        "FILE",
+        "SUCCESS",
+        `'help-init.txt' created successfully.`
+      );
+
       console.log("Init help file created successfully.");
     } else {
       console.log("Init help file already exists.");
@@ -101,6 +154,15 @@ function createHelp() {
 
     if (!fs.existsSync(configHelpFile)) {
       fs.writeFileSync(configHelpFile, configHelp);
+
+      emitter.emit(
+        "init",
+        "init",
+        "FILE",
+        "SUCCESS",
+        `'help-config.txt' created successfully.`
+      );
+
       console.log("Config help file created successfully.");
     } else {
       console.log("Config help file already exists.");
@@ -108,6 +170,15 @@ function createHelp() {
 
     if (!fs.existsSync(tokenHelpFile)) {
       fs.writeFileSync(tokenHelpFile, tokenHelp);
+
+      emitter.emit(
+        "init",
+        "init",
+        "FILE",
+        "SUCCESS",
+        `'help-token.txt' created successfully.`
+      );
+
       console.log("Token help file created successfully.");
     } else {
       console.log("Token help file already exists.");

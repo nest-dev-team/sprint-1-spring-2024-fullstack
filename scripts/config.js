@@ -1,7 +1,7 @@
 const fs = require("fs");
-const fsPromises = require("fs").promises;
 const path = require("path");
-const {configjson} = require("./templates");
+const { emitter } = require("./eventlog");
+const { configjson } = require("./templates");
 
 const args = process.argv.slice(2);
 
@@ -36,12 +36,12 @@ function displayConfigHelp() {
 }
 
 function setConfig() {
-  const filePath = path.join(__dirname, "..", "json", "config.json")
+  const filePath = path.join(__dirname, "..", "json", "config.json");
   fs.readFile(filePath, (error, data) => {
     if (error) throw error;
 
     let config = JSON.parse(data);
-    let match = false
+    let match = false;
 
     for (const key in config) {
       if (key === args[2]) {
@@ -53,12 +53,29 @@ function setConfig() {
     if (match) {
       fs.writeFile(filePath, JSON.stringify(config, null, 2), (error) => {
         if (error) throw error;
+
+        emitter.emit(
+          "config",
+          "config",
+          "SET",
+          "SUCCESS",
+          `Config set successfully.`
+        );
+
         console.log("Config updated successfull.");
-      })
+      });
     } else {
+      emitter.emit(
+        "config",
+        "config",
+        "SET",
+        "FAILURE",
+        `Config set not successful.`
+      );
+
       console.log(`Update failed, ${args[2]} is an invalid key.`);
     }
-  })
+  });
 }
 
 function resetConfig() {
@@ -68,14 +85,31 @@ function resetConfig() {
   if (fs.existsSync(fileName)) {
     fs.writeFile(fileName, configJSON, (error) => {
       if (error) throw error;
-      console.log("Config reset to default state.")
-    })
+
+      emitter.emit(
+        "config",
+        "config",
+        "RESET",
+        "SUCCESS",
+        `Config reset successfully.`
+      );
+
+      console.log("Config reset to default state.");
+    });
   } else {
-    console.log("Config file does not exist. Run 'app init --all' or 'app init --cat' to initialize file.")
+    emitter.emit(
+      "config",
+      "config",
+      "RESET",
+      "FAILURE",
+      `Config count not be reset.`
+    );
+
+    console.log(
+      "Config file does not exist. Run 'app init --all' or 'app init --cat' to initialize file."
+    );
   }
 }
-
-
 
 function configApp() {
   switch (args[1]) {

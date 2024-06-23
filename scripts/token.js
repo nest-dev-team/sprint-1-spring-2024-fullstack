@@ -1,9 +1,8 @@
 const fs = require("fs");
-const fsPromises = require("fs").promises;
 const path = require("path");
-const { configjson } = require("./templates");
 const crc32 = require("crc/crc32");
-const { format, add } = require("date-fns");
+const { format } = require("date-fns");
+const { emitter } = require("./eventlog");
 
 const args = process.argv.slice(2);
 
@@ -42,11 +41,28 @@ function newToken() {
 
       fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
         if (error) throw error;
+
+        emitter.emit(
+          "token",
+          "token",
+          "CREATE",
+          "SUCCESS",
+          `New token created successfully.`
+        );
+
         console.log(
           `Token ${token.token} for ${token.username} was created successfully.`
         );
       });
     } catch (error) {
+      emitter.emit(
+        "token",
+        "token",
+        "CREATE",
+        "FAILURE",
+        `New token creation failed.`
+      );
+
       console.log(
         "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
       );
@@ -83,10 +99,26 @@ function updateEmail() {
 
       fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
         if (error) throw error;
+
+        emitter.emit(
+          "token",
+          "token",
+          "UPDATE EMAIL",
+          "SUCCESS",
+          `Token email updated successfully.`
+        );
+
         console.log(`Email for ${args[3]} updated successfully.`);
       });
     } catch (error) {
-      console.log(error);
+      emitter.emit(
+        "token",
+        "token",
+        "UPDATE EMAIL",
+        "FAILURE",
+        `Token email update failed.`
+      );
+
       console.log(
         "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
       );
@@ -117,10 +149,26 @@ function updatePhone() {
 
       fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
         if (error) throw error;
+
+        emitter.emit(
+          "token",
+          "token",
+          "UPDATE PHONE",
+          "SUCCESS",
+          `Token phone updated successfully.`
+        );
+
         console.log(`Phone number for ${args[3]} updated successfully.`);
       });
     } catch (error) {
-      console.log(error);
+      emitter.emit(
+        "token",
+        "token",
+        "UPDATE PHONE",
+        "FAILURE",
+        `Token phone update failed.`
+      );
+
       console.log(
         "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
       );
@@ -144,7 +192,9 @@ function updateToken() {
   } else if (args[2] === "p") {
     updatePhone();
   } else {
-    console.log("Invalid argument. Please specify email or phone to update using 'e' or 'p'.");
+    console.log(
+      "Invalid argument. Please specify email or phone to update using 'e' or 'p'."
+    );
   }
 }
 
@@ -163,7 +213,9 @@ function displayTokenHelp() {
 
 function searchToken() {
   if (args.length < 3) {
-    console.log("Please specify username, email, or phone to update using 'u', 'e', or 'p'.");
+    console.log(
+      "Please specify username, email, or phone to update using 'u', 'e', or 'p'."
+    );
     return;
   }
 
@@ -174,7 +226,9 @@ function searchToken() {
   } else if (args[2] == "u") {
     searchByUsername();
   } else {
-    console.log("Invalid argument. Please specify username, email, or phone to update using 'u', 'e', or 'p'.");
+    console.log(
+      "Invalid argument. Please specify username, email, or phone to update using 'u', 'e', or 'p'."
+    );
   }
 }
 
@@ -197,8 +251,6 @@ function searchByEmail() {
         return;
       }
       console.log(tokens[index]);
-
-
     } catch (error) {
       console.log(
         "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
@@ -226,8 +278,6 @@ function searchByPhone() {
         return;
       }
       console.log(tokens[index]);
-
-
     } catch (error) {
       console.log(
         "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
@@ -255,8 +305,6 @@ function searchByUsername() {
         return;
       }
       console.log(tokens[index]);
-
-
     } catch (error) {
       console.log(
         "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
@@ -274,13 +322,11 @@ function countTokens() {
       let tokens = JSON.parse(data);
       let count = tokens.length;
 
-      if (count = 1) {
-      console.log(`There is ${count} tokens.`);
-
+      if ((count = 1)) {
+        console.log(`There is ${count} tokens.`);
       } else {
-      console.log(`There are ${count} tokens.`);
+        console.log(`There are ${count} tokens.`);
       }
-
     } catch (error) {
       console.log(
         "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
