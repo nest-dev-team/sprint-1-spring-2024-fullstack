@@ -1,10 +1,15 @@
 <html>
+  <title>Create New Token</title>
   <body>
+    <%- include('./partials/nav.ejs') %>
     <h1>Create new Token</h1>
+
     <form action="/new" method="post">
       <label for="username">Username</label>
       <input type="text" name="username" id="username" />
       <button type="submit">Submit</button>
     </form>
+
+    <p><%= newToken %></p>
   </body>
 </html>

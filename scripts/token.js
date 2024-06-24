@@ -78,11 +78,13 @@ function updateEmail(username, email) {
     if (!username) {
       console.log("Please provide a username.");
       resolve("Username required");
+      return;
     }
 
     if (!email) {
       console.log("Please provide an email address.");
       resolve("Email required");
+      return;
     }
 
     const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
@@ -97,6 +99,7 @@ function updateEmail(username, email) {
         if (index === -1) {
           console.log(`${username} not found.`);
           resolve(`User ${username} not found.`);
+          return;
         }
 
         tokens[index].email = email;
@@ -135,53 +138,67 @@ function updateEmail(username, email) {
   });
 }
 
-function updatePhone() {
-  if (args.length < 5) {
-    console.log("Please provide a phone number.");
-    return;
-  }
+function updatePhone(username, phone) {
+  return new Promise((resolve, reject) => {
+    if (!username) {
+      console.log("Please provide a username.");
+      resolve("Username required");
+      return;
+    }
 
-  const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
-  fs.readFile(tokensjson, (error, data) => {
-    try {
-      if (error) throw error;
+    if (!phone) {
+      console.log("Please provide a phone number.");
+      resolve("Phone number required");
+      return;
+    }
 
-      let tokens = JSON.parse(data);
-      let index = tokens.findIndex((token) => token.username === args[3]);
-
-      if (index === -1) {
-        console.log(`${args[3]} not found.`);
-        return;
-      }
-
-      tokens[index].phone = args[4];
-
-      fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
+    const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
+    fs.readFile(tokensjson, (error, data) => {
+      try {
         if (error) throw error;
 
+        let tokens = JSON.parse(data);
+        let index = tokens.findIndex((token) => token.username === username);
+
+        if (index === -1) {
+          console.log(`${username} not found.`);
+          resolve(`User ${username} not found.`);
+          return;
+        }
+
+        tokens[index].phone = phone;
+
+        fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
+          if (error) throw error;
+
+          emitter.emit(
+            "token",
+            "token",
+            "UPDATE PHONE",
+            "SUCCESS",
+            `Token phone updated successfully.`
+          );
+
+          console.log(`Phone number for ${username} updated successfully.`);
+          resolve(`Phone number for ${username} updated successfully.`);
+        });
+      } catch (error) {
         emitter.emit(
           "token",
           "token",
           "UPDATE PHONE",
-          "SUCCESS",
-          `Token phone updated successfully.`
+          "FAILURE",
+          `Token phone update failed.`
         );
 
-        console.log(`Phone number for ${args[3]} updated successfully.`);
-      });
-    } catch (error) {
-      emitter.emit(
-        "token",
-        "token",
-        "UPDATE PHONE",
-        "FAILURE",
-        `Token phone update failed.`
-      );
-
-      console.log(
-        "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
-      );
-    }
+        console.log(
+          "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+        );
+        resolve(
+          "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+        );
+      }
+    });
   });
 }
 
@@ -323,24 +340,34 @@ function searchByUsername() {
 }
 
 function countTokens() {
-  const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
-  fs.readFile(tokensjson, (error, data) => {
-    try {
-      if (error) throw error;
+  return new Promise((resolve, reject) => {
+    const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
-      let tokens = JSON.parse(data);
-      let count = tokens.length;
+    fs.readFile(tokensjson, (error, data) => {
+      try {
+        if (error) throw error;
 
-      if ((count = 1)) {
-        console.log(`There is ${count} tokens.`);
-      } else {
-        console.log(`There are ${count} tokens.`);
+        let tokens = JSON.parse(data);
+        let count = tokens.length;
+
+        if (count === 1) {
+          console.log(`There is ${count} token.`);
+          resolve(`There is ${count} token.`);
+          return;
+        } else {
+          console.log(`There are ${count} tokens.`);
+          resolve(`There are ${count} tokens.`);
+          return;
+        }
+      } catch (error) {
+        console.log(
+          "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+        );
+        resolve(
+          "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+        );
       }
-    } catch (error) {
-      console.log(
-        "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
-      );
-    }
+    });
   });
 }
 
