@@ -89,7 +89,7 @@ function updateEmail(username, email) {
 
     const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
-    fs.readFile(tokensjson, (error, data) => {
+    fs.readFile(tokensjson, async (error, data) => {
       try {
         if (error) throw error;
 
@@ -100,6 +100,14 @@ function updateEmail(username, email) {
           console.log(`${username} not found.`);
           resolve(`User ${username} not found.`);
           return;
+        }
+
+        let expired = await checkExpired(username, false);
+
+        if (expired === 1) {
+          const today = new Date();
+          const expires = addDays(today, 3);
+          tokens[index].expires = format(expires, "yyyy-MM-dd HH:mm:ss");
         }
 
         tokens[index].email = email;
@@ -115,8 +123,26 @@ function updateEmail(username, email) {
             `Token email updated successfully.`
           );
 
-          console.log(`Email for ${username} updated successfully.`);
-          resolve(`Email for ${username} updated successfully.`);
+          if (expired === 1) {
+            emitter.emit(
+              "token",
+              "token",
+              "REFRESH",
+              "SUCCESS",
+              `Token expiry was refreshed.`
+            );
+
+            console.log(`Email for ${username} updated successfully.`);
+            console.log(
+              `Token was expired. Token expiry for ${username} was refreshed.`
+            );
+            resolve(
+              `Email for ${username} updated successfully. Token was expired. Token expiry for ${username} was refreshed.`
+            );
+          } else {
+            console.log(`Email for ${username} updated successfully.`);
+            resolve(`Email for ${username} updated successfully.`);
+          }
         });
       } catch (error) {
         emitter.emit(
@@ -154,7 +180,7 @@ function updatePhone(username, phone) {
 
     const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
-    fs.readFile(tokensjson, (error, data) => {
+    fs.readFile(tokensjson, async (error, data) => {
       try {
         if (error) throw error;
 
@@ -167,6 +193,13 @@ function updatePhone(username, phone) {
           return;
         }
 
+        let expired = await checkExpired(username, false);
+
+        if (expired === 1) {
+          const today = new Date();
+          const expires = addDays(today, 3);
+          tokens[index].expires = format(expires, "yyyy-MM-dd HH:mm:ss");
+        }
         tokens[index].phone = phone;
 
         fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
@@ -180,8 +213,26 @@ function updatePhone(username, phone) {
             `Token phone updated successfully.`
           );
 
-          console.log(`Phone number for ${username} updated successfully.`);
-          resolve(`Phone number for ${username} updated successfully.`);
+          if (expired === 1) {
+            emitter.emit(
+              "token",
+              "token",
+              "REFRESH",
+              "SUCCESS",
+              `Token expiry was refreshed.`
+            );
+
+            console.log(`Phone number for ${username} updated successfully.`);
+            console.log(
+              `Token was expired. Token expiry for ${username} was refreshed.`
+            );
+            resolve(
+              `Email for ${username} updated successfully. Token was expired. Token expiry for ${username} was refreshed.`
+            );
+          } else {
+            console.log(`Phone number for ${username} updated successfully.`);
+            resolve(`Phone number for ${username} updated successfully.`);
+          }
         });
       } catch (error) {
         emitter.emit(
@@ -317,7 +368,7 @@ function searchByPhone() {
 
 function searchByUsername(username, add) {
   return new Promise((resolve, reject) => {
-    if (args.length < 4) {
+    if (!username) {
       console.log("Please provide a username.");
       resolve("Please provide a username.");
     }
@@ -426,6 +477,60 @@ function addTokenAttribue() {
   });
 }
 
+function checkExpired(username, check) {
+  return new Promise((resolve) => {
+    const filePath = path.join(__dirname, "..", "json", "tokens.json");
+
+    fs.readFile(filePath, async (error, data) => {
+      try {
+        if (error) throw error;
+
+        let tokens = JSON.parse(data);
+        let index = await searchByUsername(username, true);
+
+        if (index === -1) {
+          resolve(-1);
+        }
+
+        const today = new Date();
+        const expiry = new Date(tokens[index].expires);
+
+        if (expiry < today) {
+          if (check) console.log("Token is expired.");
+
+          emitter.emit(
+            "token",
+            "token",
+            "CHECK",
+            "EXPIRED",
+            `Token is expired`
+          );
+
+          resolve(1);
+        } else {
+          if (check) console.log("Token is still valid.");
+
+          emitter.emit("token", "token", "CHECK", "VALID", `Token is valid`);
+
+          resolve(0);
+        }
+      } catch {
+        console.log("Failed to check expiration.");
+
+        emitter.emit(
+          "token",
+          "token",
+          "CHECK",
+          "FAILURE",
+          `Issue during check`
+        );
+
+        resolve("Failed to check expiration.");
+      }
+    });
+  });
+}
+
 function tokenApp() {
   switch (args[1]) {
     case "--new":
@@ -448,6 +553,13 @@ function tokenApp() {
       break;
     case "--add":
       addTokenAttribue();
+      break;
+    case "--check":
+      if (args.length < 3) {
+        console.log("Please provide a username.");
+      } else {
+        checkExpired(args[2], true);
+      }
       break;
     case "--help":
     case "--h":
