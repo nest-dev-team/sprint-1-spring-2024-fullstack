@@ -569,6 +569,7 @@ function tokenApp() {
   }
 }
 
+// export required functions
 module.exports = {
   tokenApp,
   newToken,
