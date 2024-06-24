@@ -111,6 +111,43 @@ function resetConfig() {
   }
 }
 
+function addConfig() {
+  try {
+    const filePath = path.join(__dirname, "..", "json", "config.json");
+
+    fs.readFile(filePath, (error, data) => {
+      if (error) throw error;
+
+      let config = JSON.parse(data);
+      config[args[2]] = "";
+
+      fs.writeFile(filePath, JSON.stringify(config, null, 2), (error) => {
+        if (error) throw error;
+
+        emitter.emit(
+          "config",
+          "config",
+          "ADD",
+          "SUCCESS",
+          `Attribute set successfully.`
+        );
+
+        console.log("Config attribute added successfully.");
+      });
+    });
+  } catch (error) {
+    emitter.emit(
+      "config",
+      "config",
+      "ADD",
+      "FAILURE",
+      `Failed to set attribute.`
+    );
+
+    console.log("Failed to add config attribute");
+  }
+}
+
 function configApp() {
   switch (args[1]) {
     case "--show":
@@ -118,6 +155,9 @@ function configApp() {
       break;
     case "--set":
       setConfig();
+      break;
+    case "--add":
+      addConfig();
       break;
     case "--reset":
       resetConfig();

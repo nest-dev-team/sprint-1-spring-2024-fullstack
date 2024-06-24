@@ -38,19 +38,21 @@ Usage:
 
 myapp config --show                     displays a list of the current config settings
 myapp config --reset                    rests the config file with default settings
-myapp config --set <option> <value>     sets a specific config settings`;
+myapp config --set <option> <value>     sets a specific config settings
+myapp config --add <attribute>          adds a new attribute to the config settings`;
 
 const tokenHelp = `myapp token <option>
 
 Usage:
 
-myapp token --count                     displays a count of the tokens created                      
-myapp token --new <username>            generates a token for a given username, saves, tokens to the json file
-myapp token --upd p <username> <phone>  updates the json entry with a new phone number
-myapp token --upd e <username> <email>  updates the json entry with the new email
-myapp token --search u <username>       fetches a token for a given username                         
-myapp token --search e <email>          fetches a token for a given email
-myapp token --search p <phone>          fetches a token for a given phone number`;
+myapp token --count                       displays a count of the tokens created                      
+myapp token --new <username>              generates a token for a given username, saves, tokens to the json file
+myapp token --add <username> <attribute>  adds a new attribute to the config settings
+myapp token --upd p <username> <phone>    updates the json entry with a new phone number
+myapp token --upd e <username> <email>    updates the json entry with the new email
+myapp token --search u <username>         fetches a token for a given username                         
+myapp token --search e <email>            fetches a token for a given email
+myapp token --search p <phone>            fetches a token for a given phone number`;
 
 module.exports = {
   folders,
