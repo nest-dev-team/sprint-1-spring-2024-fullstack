@@ -1,0 +1,18 @@
+<html>
+  <title>Update Email</title>
+  <body>
+    <%- include('./partials/nav.ejs') %>
+
+    <h1>Update Email</h1>
+
+    <form method="POST">
+      <label for="username">Username</label>
+      <input type="text" name="username" />
+      <label for="email">New Email</label>
+      <input type="text" name="email" />
+      <input type="submit" />
+    </form>
+
+    <p><%= reply %></p>
+  </body>
+</html>
