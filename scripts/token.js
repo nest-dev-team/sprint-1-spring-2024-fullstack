@@ -1,12 +1,18 @@
+// import common core module(s)
 const fs = require("fs");
 const path = require("path");
 const crc32 = require("crc/crc32");
+
+// import functions exported from modules
 const { format } = require("date-fns");
 const { emitter } = require("./eventlog");
 
+// set up variable to store passed in commandline arguments
 const args = process.argv.slice(2);
 
+// new token function
 function newToken(username) {
+  // create token object
   let token = {
     created: "",
     username: "",
@@ -17,9 +23,11 @@ function newToken(username) {
     confirmed: "tbd",
   };
 
+  // set up created and expiry dates
   let created = new Date();
   let expires = addDays(created, 3);
 
+  // set up token object
   token.created = format(created, "yyyy-MM-dd HH:mm:ss");
   token.expires = format(expires, "yyyy-MM-dd HH:mm:ss");
   token.username = username;
@@ -27,13 +35,16 @@ function newToken(username) {
 
   const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
+  // read tokens.json file
   fs.readFile(tokensjson, (error, data) => {
     try {
       if (error) throw error;
 
+      // parse tokens.json file
       let tokens = JSON.parse(data);
       tokens.push(token);
 
+      // write to tokens.json file
       fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
         if (error) throw error;
 
@@ -67,35 +78,43 @@ function newToken(username) {
   return token.token;
 }
 
+// add days function
 function addDays(date, days) {
   var result = new Date(date);
   result.setDate(result.getDate() + days);
   return result;
 }
 
+// update email function
 function updateEmail(username, email) {
   return new Promise((resolve, reject) => {
+    // check if username is provided
     if (!username) {
       console.log("Please provide a username.");
       resolve("Username required");
       return;
     }
 
+    // check if email is provided
     if (!email) {
       console.log("Please provide an email address.");
       resolve("Email required");
       return;
     }
 
+    // set up path to tokens.json file
     const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
+    // read tokens.json file
     fs.readFile(tokensjson, async (error, data) => {
       try {
         if (error) throw error;
 
+        // parse tokens.json file
         let tokens = JSON.parse(data);
         let index = tokens.findIndex((token) => token.username === username);
 
+        // check if username exists
         if (index === -1) {
           console.log(`${username} not found.`);
           resolve(`User ${username} not found.`);
@@ -104,17 +123,21 @@ function updateEmail(username, email) {
 
         let expired = await checkExpired(username, false);
 
+        // if token is expired, refresh expiry
         if (expired === 1) {
           const today = new Date();
           const expires = addDays(today, 3);
           tokens[index].expires = format(expires, "yyyy-MM-dd HH:mm:ss");
         }
 
+        // update email
         tokens[index].email = email;
 
+        // write to tokens.json file
         fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
           if (error) throw error;
 
+          // emit successful update event
           emitter.emit(
             "token",
             "token",
@@ -123,6 +146,7 @@ function updateEmail(username, email) {
             `Token email updated successfully.`
           );
 
+          // if token was expired, refresh expiry
           if (expired === 1) {
             emitter.emit(
               "token",
@@ -144,6 +168,7 @@ function updateEmail(username, email) {
             resolve(`Email for ${username} updated successfully.`);
           }
         });
+        // if error occurs
       } catch (error) {
         emitter.emit(
           "token",
@@ -164,14 +189,17 @@ function updateEmail(username, email) {
   });
 }
 
+// update phone function
 function updatePhone(username, phone) {
   return new Promise((resolve, reject) => {
+    // check if username is provided
     if (!username) {
       console.log("Please provide a username.");
       resolve("Username required");
       return;
     }
 
+    // check if phone is provided
     if (!phone) {
       console.log("Please provide a phone number.");
       resolve("Phone number required");
@@ -180,13 +208,16 @@ function updatePhone(username, phone) {
 
     const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
+    // read tokens.json file
     fs.readFile(tokensjson, async (error, data) => {
       try {
         if (error) throw error;
 
+        // parse tokens.json file
         let tokens = JSON.parse(data);
         let index = tokens.findIndex((token) => token.username === username);
 
+        // check if username exists
         if (index === -1) {
           console.log(`${username} not found.`);
           resolve(`User ${username} not found.`);
@@ -195,6 +226,7 @@ function updatePhone(username, phone) {
 
         let expired = await checkExpired(username, false);
 
+        // if token is expired, refresh expiry
         if (expired === 1) {
           const today = new Date();
           const expires = addDays(today, 3);
@@ -202,9 +234,11 @@ function updatePhone(username, phone) {
         }
         tokens[index].phone = phone;
 
+        // write to tokens.json file
         fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
           if (error) throw error;
 
+          // emit successful update event
           emitter.emit(
             "token",
             "token",
@@ -213,6 +247,7 @@ function updatePhone(username, phone) {
             `Token phone updated successfully.`
           );
 
+          // if token was expired, refresh expiry
           if (expired === 1) {
             emitter.emit(
               "token",
@@ -234,6 +269,7 @@ function updatePhone(username, phone) {
             resolve(`Phone number for ${username} updated successfully.`);
           }
         });
+        // if error occurs
       } catch (error) {
         emitter.emit(
           "token",
@@ -254,17 +290,21 @@ function updatePhone(username, phone) {
   });
 }
 
+// update token function
 function updateToken() {
+  // check if email or phone is provided
   if (args.length < 3) {
     console.log("Please specify email or phone to update using 'e' or 'p'.");
     return;
   }
 
+  // check if username is provided
   if (args.length < 4) {
     console.log("Please provide a username.");
     return;
   }
 
+  // check if email or phone is provided
   if (args[2] === "e") {
     updateEmail(args[3], args[4]);
   } else if (args[2] === "p") {
@@ -276,10 +316,12 @@ function updateToken() {
   }
 }
 
+// display token help function
 function displayTokenHelp() {
   const tokenHelpFile = path.join(__dirname, "..", "help", "help-token.txt");
   const appHelpFile = path.join(__dirname, "..", "help", "help-app.txt");
 
+  // check if token help file exists
   if (fs.existsSync(tokenHelpFile)) {
     const help = fs.readFileSync(tokenHelpFile).toString();
     console.log(help);
@@ -289,7 +331,9 @@ function displayTokenHelp() {
   }
 }
 
+// search token function
 function searchToken() {
+  // check if username, email, or phone is provided
   if (args.length < 3) {
     console.log(
       "Please specify username, email, or phone to update using 'u', 'e', or 'p'."
@@ -297,6 +341,7 @@ function searchToken() {
     return;
   }
 
+  // check if argument is valid
   if (args[2] === "e") {
     searchByEmail();
   } else if (args[2] === "p") {
@@ -310,7 +355,9 @@ function searchToken() {
   }
 }
 
+// search by email function
 function searchByEmail() {
+  // check if email is provided
   if (args.length < 4) {
     console.log("Please provide a email address.");
     return;
@@ -318,6 +365,7 @@ function searchByEmail() {
 
   const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
+  // read tokens.json file
   fs.readFile(tokensjson, (error, data) => {
     try {
       if (error) throw error;
@@ -325,6 +373,7 @@ function searchByEmail() {
       let tokens = JSON.parse(data);
       let index = tokens.findIndex((token) => token.email === args[3]);
 
+      // check if email exists
       if (index === -1) {
         console.log(`No record with email address ${args[3]} found.`);
         return;
@@ -338,7 +387,9 @@ function searchByEmail() {
   });
 }
 
+// search by phone function
 function searchByPhone() {
+  // check if phone is provided
   if (args.length < 4) {
     console.log("Please provide a phone number.");
     return;
@@ -346,6 +397,7 @@ function searchByPhone() {
 
   const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
+  // read tokens.json file
   fs.readFile(tokensjson, (error, data) => {
     try {
       if (error) throw error;
@@ -353,6 +405,7 @@ function searchByPhone() {
       let tokens = JSON.parse(data);
       let index = tokens.findIndex((token) => token.phone === args[3]);
 
+      // check if phone exists
       if (index === -1) {
         console.log(`No record with phone number ${args[3]} found.`);
         return;
@@ -366,8 +419,10 @@ function searchByPhone() {
   });
 }
 
+// search by username function
 function searchByUsername(username, add) {
   return new Promise((resolve, reject) => {
+    // check if username is provided
     if (!username) {
       console.log("Please provide a username.");
       resolve("Please provide a username.");
@@ -375,6 +430,7 @@ function searchByUsername(username, add) {
 
     const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
+    // read tokens.json file
     fs.readFile(tokensjson, (error, data) => {
       try {
         if (error) throw error;
@@ -382,6 +438,7 @@ function searchByUsername(username, add) {
         let tokens = JSON.parse(data);
         let index = tokens.findIndex((token) => token.username === username);
 
+        // check if username exists
         if (index === -1) {
           console.log(`No record with username ${username} found.`);
           resolve(index);
@@ -402,10 +459,12 @@ function searchByUsername(username, add) {
   });
 }
 
+// count tokens function
 function countTokens() {
   return new Promise((resolve, reject) => {
     const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
+    // read tokens.json file
     fs.readFile(tokensjson, (error, data) => {
       try {
         if (error) throw error;
@@ -413,6 +472,7 @@ function countTokens() {
         let tokens = JSON.parse(data);
         let count = tokens.length;
 
+        // check if there is only one token
         if (count === 1) {
           console.log(`There is ${count} token.`);
           resolve(`There is ${count} token.`);
@@ -434,9 +494,11 @@ function countTokens() {
   });
 }
 
+// add token attribute function
 function addTokenAttribue() {
   const filePath = path.join(__dirname, "..", "json", "tokens.json");
 
+  // check if username and attribute is provided
   fs.readFile(filePath, async (error, data) => {
     try {
       if (error) throw error;
@@ -444,15 +506,19 @@ function addTokenAttribue() {
       let tokens = JSON.parse(data);
       let index = await searchByUsername(args[2], true);
 
+      // check if username exists
       if (index === -1) {
         return;
       }
 
+      // add new attribute to token
       tokens[index][args[3]] = "";
 
+      // write to tokens.json file
       fs.writeFile(filePath, JSON.stringify(tokens, null, 2), (error) => {
         if (error) throw error;
 
+        // emit successful add attribute event
         emitter.emit(
           "token",
           "token",
@@ -463,6 +529,7 @@ function addTokenAttribue() {
 
         console.log("Token attribute added successfully.");
       });
+      // if an error occurs
     } catch (error) {
       emitter.emit(
         "token",
@@ -477,10 +544,12 @@ function addTokenAttribue() {
   });
 }
 
+// check if token is expired function
 function checkExpired(username, check) {
   return new Promise((resolve) => {
     const filePath = path.join(__dirname, "..", "json", "tokens.json");
 
+    // check if username is provided
     fs.readFile(filePath, async (error, data) => {
       try {
         if (error) throw error;
@@ -488,6 +557,7 @@ function checkExpired(username, check) {
         let tokens = JSON.parse(data);
         let index = await searchByUsername(username, true);
 
+        // check if username exists
         if (index === -1) {
           resolve(-1);
         }
@@ -495,6 +565,7 @@ function checkExpired(username, check) {
         const today = new Date();
         const expiry = new Date(tokens[index].expires);
 
+        // check if token is expired
         if (expiry < today) {
           if (check) console.log("Token is expired.");
 
@@ -510,6 +581,7 @@ function checkExpired(username, check) {
         } else {
           if (check) console.log("Token is still valid.");
 
+          // emit successful check event
           emitter.emit("token", "token", "CHECK", "VALID", `Token is valid`);
 
           resolve(0);
@@ -531,6 +603,7 @@ function checkExpired(username, check) {
   });
 }
 
+// CLI function and switch statement handling different token options
 function tokenApp() {
   switch (args[1]) {
     case "--new":
