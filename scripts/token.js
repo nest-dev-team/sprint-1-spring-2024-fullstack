@@ -153,6 +153,7 @@ function updatePhone(username, phone) {
     }
 
     const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
+
     fs.readFile(tokensjson, (error, data) => {
       try {
         if (error) throw error;
@@ -250,7 +251,7 @@ function searchToken() {
   } else if (args[2] === "p") {
     searchByPhone();
   } else if (args[2] == "u") {
-    searchByUsername();
+    searchByUsername(args[3], false);
   } else {
     console.log(
       "Invalid argument. Please specify username, email, or phone to update using 'u', 'e', or 'p'."
@@ -265,6 +266,7 @@ function searchByEmail() {
   }
 
   const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
+
   fs.readFile(tokensjson, (error, data) => {
     try {
       if (error) throw error;
@@ -292,6 +294,7 @@ function searchByPhone() {
   }
 
   const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
+
   fs.readFile(tokensjson, (error, data) => {
     try {
       if (error) throw error;
@@ -312,30 +315,39 @@ function searchByPhone() {
   });
 }
 
-function searchByUsername() {
-  if (args.length < 4) {
-    console.log("Please provide a username.");
-    return;
-  }
-
-  const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
-  fs.readFile(tokensjson, (error, data) => {
-    try {
-      if (error) throw error;
-
-      let tokens = JSON.parse(data);
-      let index = tokens.findIndex((token) => token.username === args[3]);
-
-      if (index === -1) {
-        console.log(`No record with username ${args[3]} found.`);
-        return;
-      }
-      console.log(tokens[index]);
-    } catch (error) {
-      console.log(
-        "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
-      );
+function searchByUsername(username, add) {
+  return new Promise((resolve, reject) => {
+    if (args.length < 4) {
+      console.log("Please provide a username.");
+      resolve("Please provide a username.");
     }
+
+    const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
+
+    fs.readFile(tokensjson, (error, data) => {
+      try {
+        if (error) throw error;
+
+        let tokens = JSON.parse(data);
+        let index = tokens.findIndex((token) => token.username === username);
+
+        if (index === -1) {
+          console.log(`No record with username ${username} found.`);
+          resolve(index);
+          return;
+        }
+
+        if (!add) {
+          console.log(tokens[index]);
+        }
+
+        resolve(index);
+      } catch (error) {
+        console.log(
+          "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
+        );
+      }
+    });
   });
 }
 
@@ -371,6 +383,49 @@ function countTokens() {
   });
 }
 
+function addTokenAttribue() {
+  const filePath = path.join(__dirname, "..", "json", "tokens.json");
+
+  fs.readFile(filePath, async (error, data) => {
+    try {
+      if (error) throw error;
+
+      let tokens = JSON.parse(data);
+      let index = await searchByUsername(args[2], true);
+
+      if (index === -1) {
+        return;
+      }
+
+      tokens[index][args[3]] = "";
+
+      fs.writeFile(filePath, JSON.stringify(tokens, null, 2), (error) => {
+        if (error) throw error;
+
+        emitter.emit(
+          "token",
+          "token",
+          "ADD",
+          "SUCCESS",
+          `Attribute added successfully.`
+        );
+
+        console.log("Token attribute added successfully.");
+      });
+    } catch (error) {
+      emitter.emit(
+        "token",
+        "token",
+        "ADD",
+        "FAILURE",
+        `Failed to add attribute.`
+      );
+
+      console.log("Failed to add attribute.");
+    }
+  });
+}
+
 function tokenApp() {
   switch (args[1]) {
     case "--new":
@@ -390,6 +445,9 @@ function tokenApp() {
       break;
     case "--count":
       countTokens();
+      break;
+    case "--add":
+      addTokenAttribue();
       break;
     case "--help":
     case "--h":
