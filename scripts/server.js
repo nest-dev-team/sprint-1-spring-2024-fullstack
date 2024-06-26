@@ -25,12 +25,18 @@ app.get("/new", (request, response) => {
   response.render("newtoken", { newToken: "" });
 });
 
-app.post("/new", (request, response) => {
-  const token = newToken(request.body.username);
-  console.log(token);
-  response.render("newtoken", {
-    newToken: `Token ${token} for user ${request.body.username} has been created.`,
-  });
+app.post("/new", async (request, response) => {
+  const token = await newToken(request.body.username);
+
+  if (token === null) {
+    response.render("newtoken", {
+      newToken: `Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first.`,
+    });
+  } else {
+    response.render("newtoken", {
+      newToken: `Token ${token} for user ${request.body.username} has been created.`,
+    });
+  }
 });
 
 app.get("/count", async (request, response) => {

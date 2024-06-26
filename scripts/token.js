@@ -36,46 +36,50 @@ function newToken(username) {
   const tokensjson = path.join(__dirname, "..", "json", "tokens.json");
 
   // read tokens.json file
-  fs.readFile(tokensjson, (error, data) => {
-    try {
-      if (error) throw error;
 
-      // parse tokens.json file
-      let tokens = JSON.parse(data);
-      tokens.push(token);
-
-      // write to tokens.json file
-      fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(tokensjson, (error, data) => {
+      try {
         if (error) throw error;
 
+        // parse tokens.json file
+        let tokens = JSON.parse(data);
+        tokens.push(token);
+
+        // write to tokens.json file
+        fs.writeFile(tokensjson, JSON.stringify(tokens, null, 2), (error) => {
+          if (error) throw error;
+
+          emitter.emit(
+            "token",
+            "token",
+            "CREATE",
+            "SUCCESS",
+            `New token created successfully.`
+          );
+
+          console.log(
+            `Token ${token.token} for ${token.username} was created successfully.`
+          );
+
+          resolve(token.token);
+        });
+      } catch (error) {
         emitter.emit(
           "token",
           "token",
           "CREATE",
-          "SUCCESS",
-          `New token created successfully.`
+          "FAILURE",
+          `New token creation failed.`
         );
 
         console.log(
-          `Token ${token.token} for ${token.username} was created successfully.`
+          "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
         );
-      });
-    } catch (error) {
-      emitter.emit(
-        "token",
-        "token",
-        "CREATE",
-        "FAILURE",
-        `New token creation failed.`
-      );
-
-      console.log(
-        "Could not find tokens.json file. Run 'app init --all' or 'app init --cat' first."
-      );
-    }
+        resolve(null);
+      }
+    });
   });
-
-  return token.token;
 }
 
 // add days function
